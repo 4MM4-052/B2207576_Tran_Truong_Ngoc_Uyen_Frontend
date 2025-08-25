@@ -5,18 +5,20 @@
     </div>
     <div class="mt-3 col-md-6">
       <h4>
-        Danh bạ
+        Danh Bạ
         <i class="fas fa-address-book"></i>
       </h4>
       <ContactList
         v-if="filteredContactsCount > 0"
         :contacts="filteredContacts"
-        v-model:activeIndex="activeIndex"
+        :activeIndex="activeIndex"
+        @update:activeIndex="(newIndex) => (activeIndex = newIndex)"
       />
+
       <p v-else>Không có liên hệ nào.</p>
 
       <div class="mt-3 row justify-content-around align-items-center">
-        <button class="btn btn-sm btn-primary" @click="refreshList">
+        <button class="btn btn-sm btn-primary" @click="refreshList()">
           <i class="fas fa-redo"></i> Làm mới
         </button>
 
@@ -29,10 +31,10 @@
         </button>
       </div>
     </div>
-    <div class="mt-3 col-md-6">
+    <div class="mt-2 col-md-6">
       <div v-if="activeContact">
         <h4>
-          Chi tiết Liên hệ
+          Chi tiết liên hệ
           <i class="fas fa-address-card"></i>
         </h4>
         <ContactCard :contact="activeContact" />
@@ -50,17 +52,20 @@
     </div>
   </div>
 </template>
+
 <script>
 import ContactCard from "@/components/ContactCard.vue";
 import InputSearch from "@/components/InputSearch.vue";
 import ContactList from "@/components/ContactList.vue";
-import ContactService from "@/services/contact.service.js";
+import ContactService from "@/services/contact.service";
+
 export default {
   components: {
     ContactCard,
     InputSearch,
     ContactList,
   },
+  // Bổ sung mã xử lý dữ liệu sẽ trình bày bên dưới
   data() {
     return {
       contacts: [],
@@ -68,32 +73,42 @@ export default {
       searchText: "",
     };
   },
+
   watch: {
+    // Giám sát các thay đổi của biến searchText.
+    // Bỏ chọn phần tử đang được chọn trong danh sách.
     searchText() {
       this.activeIndex = -1;
     },
   },
+
   computed: {
+    // Chuyển các đối tượng contact thành chuỗi để tiện cho tìm kiếm.
     contactStrings() {
       return this.contacts.map((contact) => {
         const { name, email, address, phone } = contact;
         return [name, email, address, phone].join("");
       });
     },
+
+    // Trả về các contact có chứa thông tin cần tìm kiếm.
     filteredContacts() {
       if (!this.searchText) return this.contacts;
       return this.contacts.filter((_contact, index) =>
         this.contactStrings[index].includes(this.searchText)
       );
     },
+
     activeContact() {
       if (this.activeIndex < 0) return null;
-      return this.filteredContacts[this.activeIndex] || null;
+      return this.filteredContacts[this.activeIndex];
     },
+
     filteredContactsCount() {
-      return this.filteredContacts?.length || 0;
+      return this.filteredContacts.length;
     },
   },
+
   methods: {
     async retrieveContacts() {
       try {
@@ -102,10 +117,12 @@ export default {
         console.log(error);
       }
     },
-    async refreshList() {
-      await this.retrieveContacts();
+
+    refreshList() {
+      this.retrieveContacts();
       this.activeIndex = -1;
     },
+
     async removeAllContacts() {
       if (confirm("Bạn muốn xóa tất cả Liên hệ?")) {
         try {
@@ -116,6 +133,7 @@ export default {
         }
       }
     },
+
     goToAddContact() {
       this.$router.push({ name: "contact.add" });
     },
@@ -125,6 +143,7 @@ export default {
   },
 };
 </script>
+
 <style scoped>
 .page {
   text-align: left;
