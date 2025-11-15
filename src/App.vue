@@ -17,3 +17,4 @@ import AppHeader from "@/components/AppHeader.Vue";
   margin: auto;
 }
 </style>
+
